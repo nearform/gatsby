@@ -233,6 +233,28 @@ function prepareJSONNode(node, key, content, createNodeId, i = ``) {
   return JSONNode
 }
 
+function createRichTextNode(entryItemFieldValue, resolvable, mId) {
+  if (
+    entryItemFieldValue.data &&
+    entryItemFieldValue.data.target &&
+    entryItemFieldValue.data.target.sys &&
+    entryItemFieldValue.data.target.sys.id &&
+    resolvable.has(entryItemFieldValue.data.target.sys.id)
+  ) {
+    if (resolvable.has(entryItemFieldValue.data.target.sys.id)) {
+      entryItemFieldValue.data.target = JSON.parse(
+        stringify(entryItemFieldValue.data.target)
+      )
+    }
+  }
+
+  if (Array.isArray(entryItemFieldValue.content)) {
+    entryItemFieldValue.content.forEach(contentItem =>
+      createRichTextNode(contentItem, resolvable, mId)
+    )
+  }
+}
+
 exports.createContentTypeNodes = ({
   contentTypeItem,
   restrictedNodeFields,
@@ -332,6 +354,11 @@ exports.createContentTypeNodes = ({
               )
             }
             delete entryItemFields[entryItemFieldKey]
+          } else if (
+            entryItemFieldValue.nodeType &&
+            entryItemFieldValue.nodeType === `document`
+          ) {
+            createRichTextNode(entryItemFieldValue, resolvable, mId)
           }
         }
       })
