@@ -2,6 +2,7 @@ const _ = require(`lodash`)
 const crypto = require(`crypto`)
 const stringify = require(`json-stringify-safe`)
 const deepMap = require(`deep-map`)
+const pick = require('lodash/pick')
 
 const digest = str =>
   crypto
@@ -233,7 +234,7 @@ function prepareJSONNode(node, key, content, createNodeId, i = ``) {
   return JSONNode
 }
 
-function createRichTextNode(entryItemFieldValue, resolvable, mId) {
+function createRichTextNode(entryItemFieldValue, resolvable, mId, options) {
   if (
     entryItemFieldValue.data &&
     entryItemFieldValue.data.target &&
@@ -244,16 +245,14 @@ function createRichTextNode(entryItemFieldValue, resolvable, mId) {
     if (resolvable.has(entryItemFieldValue.data.target.sys.id)) {
       entryItemFieldValue.data.target = {
         sys: entryItemFieldValue.data.target.sys,
-        fields: {
-          slug: entryItemFieldValue.data.target.fields.slug
-        }
+        fields: pick(entryItemFieldValue.data.target.fields, options.richTextFieldEntryHyperlinkWhitelist || [])
       }
     }
   }
 
   if (Array.isArray(entryItemFieldValue.content)) {
     entryItemFieldValue.content.forEach(contentItem =>
-      createRichTextNode(contentItem, resolvable, mId)
+      createRichTextNode(contentItem, resolvable, mId, options)
     )
   }
 }
@@ -269,6 +268,7 @@ exports.createContentTypeNodes = ({
   foreignReferenceMap,
   defaultLocale,
   locales,
+  options
 }) => {
   const contentTypeItemId = contentTypeItem.name
   locales.forEach(locale => {
@@ -361,7 +361,7 @@ exports.createContentTypeNodes = ({
             entryItemFieldValue.nodeType &&
             entryItemFieldValue.nodeType === `document`
           ) {
-            createRichTextNode(entryItemFieldValue, resolvable, mId)
+            createRichTextNode(entryItemFieldValue, resolvable, mId, options)
           }
         }
       })
