@@ -242,9 +242,12 @@ function createRichTextNode(entryItemFieldValue, resolvable, mId) {
     resolvable.has(entryItemFieldValue.data.target.sys.id)
   ) {
     if (resolvable.has(entryItemFieldValue.data.target.sys.id)) {
-      entryItemFieldValue.data.target = JSON.parse(
-        stringify(entryItemFieldValue.data.target)
-      )
+      entryItemFieldValue.data.target = {
+        sys: entryItemFieldValue.data.target.sys,
+        fields: {
+          slug: entryItemFieldValue.data.target.fields.slug
+        }
+      }
     }
   }
 
